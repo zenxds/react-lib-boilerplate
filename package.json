@@ -6,7 +6,7 @@
   "scripts": {
     "start": "BABEL_ENV=development webpack-dev-server -w --open --env=development",
     "build": "BABEL_ENV=production webpack --progress --env=production",
-    "prettier": "prettier src/**/*.js src/**/*.jsx --write",
+    "prettier": "prettier --write 'lib/**/*.js'",
     "test": "jest ."
   },
   "husky": {
@@ -24,6 +24,7 @@
   "author": {
     "name": "zenxds"
   },
+  "license": "MIT",
   "publishConfig": {},
   "repository": {
     "type": "git",
