@@ -2,6 +2,8 @@ const fs = require('fs')
 const path = require('path')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
+const ESLintPlugin = require('eslint-webpack-plugin')
 const dxMock = require('dx-mock')
 
 const rules = require('./webpack.rules')
@@ -10,18 +12,18 @@ module.exports = {
   entry: './index.js',
   output: {
     path: path.join(__dirname, '../dist'),
-    filename: 'main.js'
+    filename: 'main.js',
   },
-  devtool: 'cheap-module-eval-source-map',
+  devtool: 'inline-source-map',
   resolve: {
-    modules: ['node_modules', 'lib']
+    modules: ['node_modules', 'lib'],
   },
   module: {
     rules: rules.concat([
       {
         test: /\.jsx?$/,
-        use: ['babel-loader', 'eslint-loader'],
-        exclude: /node_modules/
+        use: ['babel-loader'],
+        exclude: /node_modules/,
       },
       {
         test: /\.css$/,
@@ -31,12 +33,12 @@ module.exports = {
           {
             loader: 'postcss-loader',
             options: {
-              config: {
-                path: 'config/postcss.config.js'
-              }
-            }
-          }
-        ]
+              postcssOptions: {
+                config: path.join(__dirname, 'postcss.config.js'),
+              },
+            },
+          },
+        ],
       },
       {
         test: /\.less$/,
@@ -46,46 +48,66 @@ module.exports = {
           {
             loader: 'postcss-loader',
             options: {
-              config: {
-                path: 'config/postcss.config.js'
-              }
-            }
+              postcssOptions: {
+                config: path.join(__dirname, 'postcss.config.js'),
+              },
+            },
           },
           {
             loader: 'less-loader',
             options: {
-              relativeUrls: false,
-              javascriptEnabled: true
-            }
-          }
-        ]
+              lessOptions: {
+                relativeUrls: false,
+                math: 'always',
+                javascriptEnabled: true,
+              },
+            },
+          },
+        ],
       },
-      {
-        test: /\.(png|jpe?g|gif|svg)$/,
-        use: 'url-loader?limit=8192&name=image/[hash].[ext]'
-      }
-    ])
+    ]),
   },
   plugins: [
+    new ESLintPlugin(),
+    new ReactRefreshWebpackPlugin(),
     new HtmlWebpackPlugin({
-      template: 'template/index.html'
+      template: 'template/index.html',
     }),
     new webpack.ProvidePlugin({
-      'React': 'react'
+      React: 'react',
     }),
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.DefinePlugin({})
+    new webpack.DefinePlugin({}),
   ],
   devServer: {
-    contentBase: [
-      path.join(__dirname, '../dist'),
-      path.join(__dirname, '..')
+    static: [
+      {
+        directory: path.join(__dirname, '..'),
+      },
+      {
+        directory: path.join(__dirname, '../dist'),
+      },
     ],
+    client: {
+      overlay: {
+        errors: true,
+        warnings: false,
+      },
+    },
     hot: true,
     host: '0.0.0.0',
-    disableHostCheck: true,
-    before(app){
-      dxMock(app, { root: path.join(__dirname, '../api')})
-    }
-  }
+    allowedHosts: 'all',
+    onBeforeSetupMiddleware: function (devServer) {
+      if (!devServer) {
+        throw new Error('webpack-dev-server is not defined')
+      }
+
+      dxMock(devServer.app, { root: path.join(__dirname, '../api') })
+    },
+    proxy: {
+      '/dev': {
+        target: '',
+        pathRewrite: { '^/dev': '' },
+      },
+    },
+  },
 }
