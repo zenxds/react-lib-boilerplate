@@ -43,7 +43,7 @@ module.exports = {
     ],
     semi: ['warn', 'never'],
     'eol-last': 'warn',
-    'comma-dangle': ['error', 'never'],
+    'comma-dangle': ['error', 'always-multiline'],
     'react/react-in-jsx-scope': 'off',
     'react/prop-types': 'warn',
   },
