@@ -68,7 +68,9 @@ module.exports = {
     ]),
   },
   plugins: [
-    new ESLintPlugin(),
+    new ESLintPlugin({
+      failOnError: true,
+    }),
     new ReactRefreshWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: 'template/index.html',
